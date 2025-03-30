@@ -10,6 +10,7 @@ export default function AudioControls() {
     startRecording, 
     stopRecording,
     pauseRecording,
+    resumeRecording,
     audioBlob
   } = useAudioRecorder();
   
@@ -65,11 +66,12 @@ export default function AudioControls() {
   const handlePauseToggle = () => {
     if (isRecording) {
       togglePause();
-      if (isPaused) {
+      
+      // Only need to pause recording explicitly - resuming is handled by togglePause
+      if (!isPaused) {
         pauseRecording();
-      } else {
-        startRecording(); // Resume recording
       }
+      // The pauseRecording/resumeRecording happens in speech recognition via togglePause
     }
   };
   

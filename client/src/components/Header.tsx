@@ -1,5 +1,5 @@
-import { Settings } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Settings, BookOpenText } from "lucide-react";
+import { Button } from "./ui/button";
 import { useSettings } from "../context/SettingsContext";
 
 export default function Header() {
@@ -10,7 +10,7 @@ export default function Header() {
       <div className="flex justify-between items-center">
         <div className="flex items-center">
           <div className="bg-primary p-2 rounded-lg mr-3">
-            <span className="material-icons text-white">auto_stories</span>
+            <BookOpenText className="h-6 w-6 text-white" />
           </div>
           <h1 className="text-2xl font-semibold font-mukta text-primary">
             Japji Sahib Mistake Detector

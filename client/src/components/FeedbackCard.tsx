@@ -1,4 +1,4 @@
-import { Card } from "@/components/ui/card";
+import { Card } from "./ui/card";
 import { AlertTriangle, AlertCircle } from "lucide-react";
 
 type FeedbackItem = {
@@ -28,9 +28,9 @@ export default function FeedbackCard({ feedbackItems }: FeedbackCardProps) {
         {feedbackItems.map((item, index) => (
           <div 
             key={index} 
-            className={`p-3 ${item.type === 'error' ? 'bg-error bg-opacity-10' : 'bg-warning bg-opacity-10'} rounded-lg flex items-start`}
+            className={`p-3 ${item.type === 'error' ? 'bg-red-100' : 'bg-amber-100'} rounded-lg flex items-start`}
           >
-            <span className={`mr-2 mt-0.5 ${item.type === 'error' ? 'text-error' : 'text-warning'}`}>
+            <span className={`mr-2 mt-0.5 ${item.type === 'error' ? 'text-red-500' : 'text-amber-500'}`}>
               {item.type === 'error' ? <AlertCircle size={20} /> : <AlertTriangle size={20} />}
             </span>
             <div>

@@ -1,4 +1,4 @@
-import { RecitationState, WordStatus } from "@/hooks/useRecitation";
+import { RecitationState, WordStatus } from "../hooks/useRecitation";
 
 type GurmukthiTextProps = {
   recitationState: RecitationState;
@@ -34,38 +34,7 @@ export default function GurmukthiText({ recitationState }: GurmukthiTextProps) {
         ))}
       </div>
       
-      <style jsx>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 8px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #F1F5F9;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: #CBD5E1;
-          border-radius: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background-color: #94A3B8;
-        }
-        .highlighted {
-          background-color: rgba(230, 180, 34, 0.3);
-          border-radius: 0.25rem;
-        }
-        .error {
-          background-color: rgba(239, 68, 68, 0.2);
-          border-radius: 0.25rem;
-          text-decoration: line-through;
-          text-decoration-color: #EF4444;
-        }
-        .correct {
-          background-color: rgba(16, 185, 129, 0.2);
-          border-radius: 0.25rem;
-        }
-        .current {
-          border-bottom: 2px solid #5D28A0;
-        }
-      `}</style>
+      {/* Styles moved to index.css */}
     </div>
   );
 }
