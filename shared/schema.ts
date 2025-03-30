@@ -20,6 +20,7 @@ export type User = typeof users.$inferSelect;
 // Schema for text comparison request
 export const compareRecitation = z.object({
   recognizedText: z.string(),
+  referenceText: z.string().optional(),
 });
 
 // Types for text comparison results

@@ -67,19 +67,33 @@ export function useSpeechRecognition() {
             return;
           }
           
+          // Get the result
           const resultIndex = event.resultIndex;
           const transcript = event.results[resultIndex][0].transcript;
           
-          console.log('Recognition result:', transcript);
+          console.log('❗Speech recognition result:', transcript);
+          console.log('❗Speech recognition confidence:', event.results[resultIndex][0].confidence);
+          
+          // Debug the event structure
+          console.log('❗Event structure:', {
+            resultIndex,
+            isFinal: event.results[resultIndex].isFinal,
+            results: Array.from(event.results).map((r: any) => ({
+              transcript: r[0]?.transcript,
+              confidence: r[0]?.confidence,
+              isFinal: r.isFinal
+            }))
+          });
           
           // Update transcript
           setTranscript(prevTranscript => {
             const newTranscript = prevTranscript + ' ' + transcript;
+            console.log('❗Updated full transcript:', newTranscript);
             
-            // Process the recognized text if real-time feedback is enabled
-            if (settings.realtimeFeedback) {
-              processRecognizedText(newTranscript);
-            }
+            // Process the recognized text regardless of settings
+            // We need to see if this is being called at all
+            console.log('❗Sending transcript for processing...');
+            processRecognizedText(newTranscript);
             
             return newTranscript;
           });

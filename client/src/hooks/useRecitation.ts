@@ -91,28 +91,78 @@ export function useRecitation() {
 
   // Process recognized text to update the recitation state
   async function processRecognizedText(recognizedText: string) {
+    console.log('🔴 processRecognizedText called with:', recognizedText);
+    
+    if (!recognizedText || recognizedText.trim() === '') {
+      console.log('🔴 Empty recognized text, skipping processing');
+      return;
+    }
+    
+    // Get the reference text to compare against
+    const referenceTextToUse = flattenRecitationText();
+    console.log('🔴 Reference text for comparison:', referenceTextToUse);
+    
     // Send recognized text to server for comparison
     try {
-      const response = await apiRequest(
-        'POST', 
-        '/api/japji-sahib/compare', 
-        { recognizedText }
-      );
+      console.log('🔴 Attempting to call API endpoint');
       
-      const result = await response.json();
+      // Try to use the API first
+      try {
+        console.log('🔴 Calling API at /api/japji-sahib/compare');
+        const response = await fetch('/api/japji-sahib/compare', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            recognizedText: recognizedText,
+            referenceText: referenceTextToUse
+          })
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API error: ${response.status} ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('🔴 API comparison result:', result);
+        
+        // Update state based on comparison results
+        if (result && result.words) {
+          updateRecitationState(result.words);
+        }
+        
+        if (result && result.feedback) {
+          setFeedback(result.feedback);
+        }
+        
+        return; // Exit function if API call succeeded
+      } catch (apiError) {
+        console.error('🔴 API call failed:', apiError);
+        // Continue to fallback
+      }
       
-      // Update state based on comparison results
-      updateRecitationState(result.words);
-      setFeedback(result.feedback);
-    } catch (error) {
       // Fallback to client-side comparison if server fails
+      console.log('🔴 Falling back to client-side comparison');
       const comparisonResult = compareText(
         recognizedText, 
-        flattenRecitationText()
+        referenceTextToUse
       );
       
-      updateRecitationState(comparisonResult.words);
+      console.log('🔴 Client-side comparison result:', comparisonResult);
+      
+      if (comparisonResult && comparisonResult.words) {
+        updateRecitationState(comparisonResult.words);
+      }
+      
       generateFeedback(comparisonResult);
+      
+    } catch (error) {
+      console.error('🔴 Error in processRecognizedText:', error);
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined
+      });
     }
   }
 
