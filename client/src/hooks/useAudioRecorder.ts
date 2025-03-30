@@ -21,23 +21,29 @@ export function useAudioRecorder() {
   
   // Start recording
   const startRecording = async () => {
+    console.log('startRecording called');
     try {
       // Reset any previous errors
       setError(null);
       
       // Get media stream if we don't already have one
       if (!stream.current) {
+        console.log('Getting user media...');
         stream.current = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('User media obtained successfully');
       }
       
       // Reset audio chunks
       audioChunks.current = [];
       
       // Create media recorder
+      console.log('Creating MediaRecorder...');
       mediaRecorder.current = new MediaRecorder(stream.current);
+      console.log('MediaRecorder created with state:', mediaRecorder.current.state);
       
       // Handle data available event
       mediaRecorder.current.ondataavailable = (event) => {
+        console.log('Data available event, size:', event.data.size);
         if (event.data.size > 0) {
           audioChunks.current.push(event.data);
         }
@@ -45,12 +51,15 @@ export function useAudioRecorder() {
       
       // Handle recording stop event
       mediaRecorder.current.onstop = () => {
+        console.log('Recording stopped, creating audio blob');
         const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
         setAudioBlob(audioBlob);
       };
       
       // Start recording
+      console.log('Starting MediaRecorder...');
       mediaRecorder.current.start();
+      console.log('MediaRecorder started with state:', mediaRecorder.current.state);
       setIsRecording(true);
     } catch (err) {
       console.error('Error starting recording:', err);

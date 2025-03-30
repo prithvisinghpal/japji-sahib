@@ -154,18 +154,24 @@ export function useSpeechRecognition() {
   
   // Start recognition
   const startSpeechRecognition = () => {
+    console.log('startSpeechRecognition called, current state:', { isListening, isPaused });
     setError(null);
     setTranscript("");
     
     if (recognition.current) {
       try {
+        console.log('Starting recognition.current.start()');
         recognition.current.start();
+        console.log('Recognition started successfully');
         setIsListening(true);
         setIsPaused(false);
       } catch (err) {
         console.error('Error starting speech recognition:', err);
         setError('Failed to start speech recognition. Please try again.');
       }
+    } else {
+      console.error('Recognition.current is null - speech recognition not initialized properly');
+      setError('Speech recognition not initialized. Please reload the page.');
     }
   };
   
