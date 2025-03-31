@@ -4,11 +4,14 @@ export function useAudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<BlobPart[]>([]);
   const stream = useRef<MediaStream | null>(null);
+  const audioElement = useRef<HTMLAudioElement | null>(null);
   
   // Initialize audio recorder when component mounts
   useEffect(() => {
@@ -55,6 +58,20 @@ export function useAudioRecorder() {
         console.log('Recording stopped, creating audio blob');
         const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
         setAudioBlob(audioBlob);
+        
+        // Create URL for the audio blob
+        const url = URL.createObjectURL(audioBlob);
+        setAudioUrl(url);
+        
+        // Create audio element for playback
+        if (!audioElement.current) {
+          audioElement.current = new Audio(url);
+          audioElement.current.onended = () => {
+            setIsPlaying(false);
+          };
+        } else {
+          audioElement.current.src = url;
+        }
       };
       
       // Start recording
@@ -127,14 +144,52 @@ export function useAudioRecorder() {
     }
   };
   
+  // Play the recorded audio
+  const playRecording = () => {
+    if (audioElement.current && audioUrl) {
+      try {
+        audioElement.current.play();
+        setIsPlaying(true);
+      } catch (err) {
+        console.error('Error playing audio:', err);
+        setError('Failed to play audio recording. Please try again.');
+      }
+    }
+  };
+  
+  // Pause audio playback
+  const pausePlayback = () => {
+    if (audioElement.current && isPlaying) {
+      try {
+        audioElement.current.pause();
+        setIsPlaying(false);
+      } catch (err) {
+        console.error('Error pausing audio playback:', err);
+      }
+    }
+  };
+  
+  // Clean up when unmounting
+  useEffect(() => {
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [audioUrl]);
+  
   return {
     isRecording,
     isPaused,
+    isPlaying,
     audioBlob,
+    audioUrl,
     error,
     startRecording,
     stopRecording,
     pauseRecording,
-    resumeRecording
+    resumeRecording,
+    playRecording,
+    pausePlayback
   };
 }

@@ -6,6 +6,7 @@ import AudioControlButtons from "./AudioControlButtons";
 import AudioWaveform from "./AudioWaveform";
 import { useRecitation } from "../hooks/useRecitation";
 import { useSettings } from "../context/SettingsContext";
+import { useAudioRecording } from "../context/AudioRecordingContext";
 
 export default function RecitationCard() {
   const { 

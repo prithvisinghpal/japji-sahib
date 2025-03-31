@@ -1,11 +1,11 @@
 import { Button } from "@/components/ui/button";
 import { Mic, Square, Pause, Play } from "lucide-react";
-import { useAudioRecorder } from "../hooks/useAudioRecorder";
 import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRecitation } from "../hooks/useRecitation";
-import { useCallback } from "react";
+import { useAudioRecording } from "../context/AudioRecordingContext";
+import ReplayButton from "./ReplayButton";
 
 export default function AudioControlButtons() {
   // Get toast for notifications
@@ -26,7 +26,7 @@ export default function AudioControlButtons() {
     stopRecording,
     pauseRecording,
     resumeRecording,
-  } = useAudioRecorder();
+  } = useAudioRecording();
 
   // Get speech recognition state and functions
   const { 
@@ -202,16 +202,21 @@ export default function AudioControlButtons() {
     }
   };
 
+  const { isPlaying, playRecording, pausePlayback, audioBlob } = useAudioRecording();
+
   return (
     <div className="flex justify-center gap-2 my-4">
       {!isRecording ? (
-        <Button
-          onClick={handleStartRecording}
-          className="bg-primary hover:bg-primary/90 text-white"
-        >
-          <Mic className="mr-2 h-4 w-4" />
-          Start Recitation
-        </Button>
+        <>
+          <Button
+            onClick={handleStartRecording}
+            className="bg-primary hover:bg-primary/90 text-white"
+          >
+            <Mic className="mr-2 h-4 w-4" />
+            Start Recitation
+          </Button>
+          {audioBlob && <ReplayButton />}
+        </>
       ) : (
         <>
           {!isPaused ? (
