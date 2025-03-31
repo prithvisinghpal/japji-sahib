@@ -5,6 +5,7 @@ import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState } from "react";
 import { useRecitation } from "../hooks/useRecitation";
+import { useCallback } from "react";
 
 export default function AudioControlButtons() {
   // Get toast for notifications
@@ -14,7 +15,7 @@ export default function AudioControlButtons() {
   const [isProcessing, setIsProcessing] = useState(false);
   
   // Get recitation processor
-  const { restartRecitation } = useRecitation();
+  const { restartRecitation, processRecognizedText } = useRecitation();
   
   // Get audio recorder state and functions
   const {
@@ -36,7 +37,12 @@ export default function AudioControlButtons() {
     startSpeechRecognition, 
     stopSpeechRecognition,
     togglePause 
-  } = useSpeechRecognition();
+  } = useSpeechRecognition({
+    onTranscriptChange: useCallback((newTranscript: string) => {
+      console.log("🎯 Transcript change detected, forwarding to recitation processor");
+      processRecognizedText(newTranscript);
+    }, [processRecognizedText])
+  });
   
   // Display any errors as toast notifications
   useEffect(() => {

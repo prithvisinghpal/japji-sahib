@@ -10,11 +10,19 @@ import { useSettings } from "../context/SettingsContext";
 export default function RecitationCard() {
   const { 
     recitationState, 
-    progressPercentage, 
-    restartRecitation 
+    progressPercentage,
+    restartRecitation,
+    processRecognizedText
   } = useRecitation();
   
   const { openHelp } = useSettings();
+  
+  // For debugging purpose - set a test progress percentage
+  const testProgress = () => {
+    console.log("🧪 Testing progress update");
+    // Process a test string to update progress
+    processRecognizedText("ੴ ਸਤਿ ਨਾਮੁ ਕਰਤਾ ਪੁਰਖੁ");
+  };
 
   return (
     <Card className="bg-white rounded-xl shadow-md p-6 mb-6 flex-grow flex flex-col">
@@ -36,6 +44,15 @@ export default function RecitationCard() {
             className="p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-600"
           >
             <RefreshCcw className="h-5 w-5" />
+          </Button>
+          {/* Test button for progress */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={testProgress}
+            className="text-xs"
+          >
+            Test Progress
           </Button>
         </div>
       </div>

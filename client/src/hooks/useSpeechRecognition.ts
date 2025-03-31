@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import { useRecitation } from "./useRecitation";
 import { useSettings } from "../context/SettingsContext";
 
 interface SpeechRecognitionInstance extends EventTarget {
@@ -22,13 +21,18 @@ declare global {
   }
 }
 
-export function useSpeechRecognition() {
+interface SpeechRecognitionOptions {
+  onTranscriptChange?: (transcript: string) => void;
+}
+
+export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
   const [isListening, setIsListening] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [error, setError] = useState<string | null>(null);
   
-  const { processRecognizedText } = useRecitation();
+  // Extract callback from options
+  const { onTranscriptChange } = options;
   const { settings } = useSettings();
   
   const recognition = useRef<SpeechRecognitionInstance | null>(null);
@@ -98,16 +102,18 @@ export function useSpeechRecognition() {
             
             console.log('👂 Updated full transcript:', fullTranscript);
             
-            // Send transcript for processing on every update
-            console.log('👂 Sending transcript for processing...');
-            processRecognizedText(fullTranscript);
-            
-            // If we have a final transcript, also process it separately to ensure it's captured
-            if (finalTranscriptDetected && settings.realtimeFeedback) {
-              console.log('👂 Final transcript detected, processing separately');
-              setTimeout(() => {
-                processRecognizedText(fullTranscript);
-              }, 500);
+            // If callback is provided, send transcript for processing
+            if (onTranscriptChange) {
+              console.log('👂 Sending transcript to callback...');
+              onTranscriptChange(fullTranscript);
+              
+              // If we have a final transcript, also process it separately to ensure it's captured
+              if (finalTranscriptDetected && settings.realtimeFeedback) {
+                console.log('👂 Final transcript detected, processing separately');
+                setTimeout(() => {
+                  onTranscriptChange(fullTranscript);
+                }, 500);
+              }
             }
           }
         } catch (err) {
@@ -157,8 +163,8 @@ export function useSpeechRecognition() {
           setIsListening(false);
           
           // Process the final transcript
-          if (!settings.realtimeFeedback && transcript) {
-            processRecognizedText(transcript);
+          if (!settings.realtimeFeedback && transcript && onTranscriptChange) {
+            onTranscriptChange(transcript);
           }
         }
       };
@@ -177,7 +183,7 @@ export function useSpeechRecognition() {
         }
       }
     };
-  }, [settings.realtimeFeedback, isListening, isPaused, transcript, processRecognizedText]);
+  }, [settings.realtimeFeedback, isListening, isPaused, transcript, onTranscriptChange]);
   
   // Start recognition
   const startSpeechRecognition = () => {
@@ -209,8 +215,8 @@ export function useSpeechRecognition() {
       setIsListening(false);
       
       // Process the final transcript if not done in real-time
-      if (!settings.realtimeFeedback && transcript) {
-        processRecognizedText(transcript);
+      if (!settings.realtimeFeedback && transcript && onTranscriptChange) {
+        onTranscriptChange(transcript);
       }
     }
   };
