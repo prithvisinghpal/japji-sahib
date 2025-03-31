@@ -106,10 +106,33 @@ export function useRecitation() {
     try {
       console.log('🔴 Attempting to call API endpoint');
       
-      // Try to use the API first
+      // We will use client-side comparison as the primary method since
+      // we've been having issues with the API endpoints
+      console.log('🔴 Using client-side text comparison');
+      const comparisonResult = compareText(
+        recognizedText, 
+        referenceTextToUse
+      );
+      
+      console.log('🔴 Client-side comparison result:', comparisonResult);
+      
+      if (comparisonResult && comparisonResult.words) {
+        console.log('🔴 Words detected in comparison result, updating state');
+        updateRecitationState(comparisonResult.words);
+      } else {
+        console.log('🔴 No words in comparison result:', comparisonResult);
+      }
+      
+      // Generate feedback based on the comparison
+      if (comparisonResult) {
+        console.log('🔴 Generating feedback from comparison result');
+        generateFeedback(comparisonResult);
+      }
+      
+      // Try API as a fallback or additional validation
       try {
         // First try the new endpoint
-        console.log('🔴 Calling API at /api/japji-sahib/compare');
+        console.log('🔴 Also calling API at /api/japji-sahib/compare (for validation)');
         let response = await fetch('/api/japji-sahib/compare', {
           method: 'POST',
           headers: {
@@ -136,46 +159,27 @@ export function useRecitation() {
           });
         }
         
-        if (!response.ok) {
-          throw new Error(`API error: ${response.status} ${response.statusText}`);
-        }
-        
-        const result = await response.json();
-        console.log('🔴 API comparison result:', result);
-        
-        // Update state based on comparison results
-        if (result && result.words) {
-          updateRecitationState(result.words);
-          console.log('🔴 Updated recitation state with API result words');
+        if (response.ok) {
+          const result = await response.json();
+          console.log('🔴 API comparison result:', result);
+          
+          // Update state based on API results if we have any
+          if (result && result.words) {
+            console.log('🔴 API returned words data, updating state again');
+            updateRecitationState(result.words);
+          }
+          
+          if (result && result.feedback) {
+            console.log('🔴 API returned feedback data, updating feedback');
+            setFeedback(result.feedback);
+          }
         } else {
-          console.log('🔴 API result missing words property:', result);
+          console.log(`🔴 API error: ${response.status} ${response.statusText} - continuing with client-side results`);
         }
-        
-        if (result && result.feedback) {
-          setFeedback(result.feedback);
-          console.log('🔴 Updated feedback with API result feedback');
-        }
-        
-        return; // Exit function if API call succeeded
       } catch (apiError) {
         console.error('🔴 API call failed:', apiError);
-        // Continue to fallback
+        console.log('🔴 Continuing with client-side comparison results');
       }
-      
-      // Fallback to client-side comparison if server fails
-      console.log('🔴 Falling back to client-side comparison');
-      const comparisonResult = compareText(
-        recognizedText, 
-        referenceTextToUse
-      );
-      
-      console.log('🔴 Client-side comparison result:', comparisonResult);
-      
-      if (comparisonResult && comparisonResult.words) {
-        updateRecitationState(comparisonResult.words);
-      }
-      
-      generateFeedback(comparisonResult);
       
     } catch (error) {
       console.error('🔴 Error in processRecognizedText:', error);
@@ -195,50 +199,81 @@ export function useRecitation() {
 
   // Update recitation state with comparison results
   function updateRecitationState(comparedWords: { text: string, isCorrect: boolean }[]) {
-    const newRecitationState = { ...recitationState };
+    console.log('🔵 updateRecitationState called with', comparedWords.length, 'words');
+    
+    if (comparedWords.length === 0) {
+      console.log('🔵 No compared words provided, skipping update');
+      return;
+    }
+    
+    // Create a deep copy of the recitation state
+    const newRecitationState = {
+      paras: JSON.parse(JSON.stringify(recitationState.paras)),
+      currentPosition: { ...recitationState.currentPosition }
+    };
+    
     let wordCount = 0;
     let wordsProcessed = 0;
     
     // Calculate total words for progress
     const totalWords = newRecitationState.paras.reduce(
-      (count, para) => count + para.words.length, 
+      (count: number, para: Para) => count + para.words.length, 
       0
     );
     
-    // Find words and update status
-    for (let paraIndex = 0; paraIndex < newRecitationState.paras.length; paraIndex++) {
-      const para = newRecitationState.paras[paraIndex];
+    console.log('🔵 Total words in text:', totalWords);
+    
+    // Create a flattened list of all words
+    const allWords: { word: Word, paraIndex: number, wordIndex: number }[] = [];
+    newRecitationState.paras.forEach((para: Para, paraIndex: number) => {
+      para.words.forEach((word: Word, wordIndex: number) => {
+        allWords.push({ word, paraIndex, wordIndex });
+      });
+    });
+    
+    console.log('🔵 Total flattened words:', allWords.length);
+    
+    // Map the compared words to our text
+    for (let i = 0; i < comparedWords.length && i < allWords.length; i++) {
+      const comparedWord = comparedWords[i];
+      const targetWord = allWords[i];
       
-      for (let wordIndex = 0; wordIndex < para.words.length; wordIndex++) {
-        if (wordCount < comparedWords.length) {
-          const comparedWord = comparedWords[wordCount];
-          
-          if (comparedWord) {
-            // Update status
-            if (comparedWord.isCorrect) {
-              para.words[wordIndex].status = WordStatus.CORRECT;
-              wordsProcessed++;
-            } else {
-              para.words[wordIndex].status = WordStatus.ERROR;
-              wordsProcessed++;
-            }
-          }
-          
-          wordCount++;
+      if (comparedWord && targetWord) {
+        const paraIndex = targetWord.paraIndex;
+        const wordIndex = targetWord.wordIndex;
+        
+        // Update the word status
+        if (comparedWord.isCorrect) {
+          newRecitationState.paras[paraIndex].words[wordIndex].status = WordStatus.CORRECT;
+        } else {
+          newRecitationState.paras[paraIndex].words[wordIndex].status = WordStatus.ERROR;
         }
+        
+        wordsProcessed++;
       }
     }
     
-    // Update current position to the next pending word
+    console.log('🔵 Words processed:', wordsProcessed);
+    
+    // Find the next pending word and set it as current
     const currentPos = findNextPendingWord(newRecitationState);
     if (currentPos) {
+      console.log('🔵 Next pending word found at para:', currentPos.paraIndex, 'word:', currentPos.wordIndex);
       newRecitationState.currentPosition = currentPos;
       newRecitationState.paras[currentPos.paraIndex].words[currentPos.wordIndex].status = WordStatus.CURRENT;
+    } else {
+      console.log('🔵 No pending words found');
     }
     
-    // Update progress percentage
-    setProgressPercentage(Math.floor((wordsProcessed / totalWords) * 100));
+    // Calculate and update progress percentage
+    const calculatedPercentage = Math.floor((wordsProcessed / totalWords) * 100);
+    console.log('🔵 Progress percentage calculated:', calculatedPercentage);
     
+    // Update the progress percentage state
+    setProgressPercentage(calculatedPercentage);
+    
+    // Update the recitation state
+    console.log('🔵 Setting new recitation state');
     setRecitationState(newRecitationState);
   }
 

@@ -70,7 +70,8 @@ export function useSpeechRecognition() {
           }
           
           // Get the results from the event
-          let transcript = '';
+          let newTranscript = '';
+          let finalTranscriptDetected = false;
           
           // Process all results in the event (not just the latest)
           for (let i = 0; i < event.results.length; i++) {
@@ -78,29 +79,36 @@ export function useSpeechRecognition() {
             if (event.results[i].isFinal) {
               const result = event.results[i][0].transcript;
               console.log(`👂 Final result [${i}]:`, result);
-              transcript += ' ' + result;
+              newTranscript += ' ' + result;
+              finalTranscriptDetected = true;
             } else if (settings.realtimeFeedback) {
               // Include interim results only if realtime feedback is enabled
               const result = event.results[i][0].transcript;
               console.log(`👂 Interim result [${i}]:`, result);
-              transcript += ' ' + result;
+              newTranscript += ' ' + result;
             }
           }
           
-          if (transcript.trim()) {
-            console.log('👂 Combined transcript:', transcript);
+          if (newTranscript.trim()) {
+            console.log('👂 Combined transcript:', newTranscript);
             
-            // Update transcript state
-            setTranscript(prevTranscript => {
-              const newTranscript = prevTranscript + transcript;
-              console.log('👂 Updated full transcript:', newTranscript);
-              
-              // Process recognized text for feedback
-              console.log('👂 Sending transcript for processing...');
-              processRecognizedText(newTranscript);
-              
-              return newTranscript;
-            });
+            // Update transcript state and process immediately
+            const fullTranscript = transcript + ' ' + newTranscript.trim();
+            setTranscript(fullTranscript);
+            
+            console.log('👂 Updated full transcript:', fullTranscript);
+            
+            // Send transcript for processing on every update
+            console.log('👂 Sending transcript for processing...');
+            processRecognizedText(fullTranscript);
+            
+            // If we have a final transcript, also process it separately to ensure it's captured
+            if (finalTranscriptDetected && settings.realtimeFeedback) {
+              console.log('👂 Final transcript detected, processing separately');
+              setTimeout(() => {
+                processRecognizedText(fullTranscript);
+              }, 500);
+            }
           }
         } catch (err) {
           console.error('👂 Error processing speech recognition result:', err);
