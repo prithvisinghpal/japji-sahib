@@ -7,6 +7,7 @@ import AudioWaveform from "./AudioWaveform";
 import { useRecitation } from "../hooks/useRecitation";
 import { useSettings } from "../context/SettingsContext";
 import { useAudioRecording } from "../context/AudioRecordingContext";
+import { useEffect } from "react";
 
 export default function RecitationCard() {
   const { 
@@ -16,13 +17,40 @@ export default function RecitationCard() {
     processRecognizedText
   } = useRecitation();
   
-  const { openHelp } = useSettings();
+  const { 
+    openHelp 
+  } = useSettings();
+  
+  const {
+    recordedText,
+    isRecording,
+    isPlaying,
+    setRecordedText
+  } = useAudioRecording();
+  
+  // Simulate highlighting during playback
+  useEffect(() => {
+    if (isPlaying && recordedText) {
+      console.log("🎵 Playing back with text:", recordedText);
+      // When playback starts, process recorded text to highlight words
+      processRecognizedText(recordedText);
+    }
+  }, [isPlaying, recordedText, processRecognizedText]);
   
   // For debugging purpose - set a test progress percentage
   const testProgress = () => {
     console.log("🧪 Testing progress update");
-    // Process a test string to update progress
-    processRecognizedText("ੴ ਸਤਿ ਨਾਮੁ ਕਰਤਾ ਪੁਰਖੁ");
+    // Process a larger test string to update progress with more words
+    const testText = "ੴ ਸਤਿ ਨਾਮੁ ਕਰਤਾ ਪੁਰਖੁ ਨਿਰਭਉ ਨਿਰਵੈਰੁ ਅਕਾਲ ਮੂਰਤਿ ਅਜੂਨੀ ਸੈਭੰ ਗੁਰ ਪ੍ਰਸਾਦਿ ॥ ॥ ਜਪੁ ॥ ਆਦਿ ਸਚੁ ਜੁਗਾਦਿ ਸਚੁ ॥ ਹੈ ਭੀ ਸਚੁ ਨਾਨਕ ਹੋਸੀ ਭੀ ਸਚੁ ॥੧॥";
+    
+    // Reset the recitation state before processing the test text
+    restartRecitation();
+    
+    // Process the test text
+    processRecognizedText(testText);
+    
+    // Also update the recordedText in AudioRecordingContext
+    setRecordedText(testText);
   };
 
   return (

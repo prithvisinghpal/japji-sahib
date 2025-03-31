@@ -26,6 +26,7 @@ export default function AudioControlButtons() {
     stopRecording,
     pauseRecording,
     resumeRecording,
+    setRecordedText,
   } = useAudioRecording();
 
   // Get speech recognition state and functions
@@ -40,8 +41,12 @@ export default function AudioControlButtons() {
   } = useSpeechRecognition({
     onTranscriptChange: useCallback((newTranscript: string) => {
       console.log("🎯 Transcript change detected, forwarding to recitation processor");
+      // Process the transcript for visualization
       processRecognizedText(newTranscript);
-    }, [processRecognizedText])
+      
+      // Save the transcript in the audio recording context for replay
+      setRecordedText(newTranscript);
+    }, [processRecognizedText, setRecordedText])
   });
   
   // Display any errors as toast notifications

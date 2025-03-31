@@ -7,12 +7,14 @@ type AudioRecordingContextType = {
   audioBlob: Blob | null;
   audioUrl: string | null;
   error: string | null;
+  recordedText: string | null;
   startRecording: () => Promise<void>;
   stopRecording: () => void;
   pauseRecording: () => void;
   resumeRecording: () => void;
   playRecording: () => void;
   pausePlayback: () => void;
+  setRecordedText: (text: string) => void;
 };
 
 const AudioRecordingContext = createContext<AudioRecordingContextType | undefined>(undefined);
@@ -24,6 +26,7 @@ export function AudioRecordingProvider({ children }: { children: React.ReactNode
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [recordedText, setRecordedText] = useState<string | null>(null);
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -143,6 +146,18 @@ export function AudioRecordingProvider({ children }: { children: React.ReactNode
   const playRecording = useCallback(() => {
     try {
       if (audioElementRef.current && audioUrl) {
+        // Before playback, make sure to update the UI
+        console.log("Starting audio playback");
+        
+        // Add a timeupdate event listener to track playback progress if not already added
+        if (!audioElementRef.current.onended) {
+          // When audio ends, update the state
+          audioElementRef.current.onended = () => {
+            console.log("Playback ended");
+            setIsPlaying(false);
+          };
+        }
+        
         audioElementRef.current.play();
         setIsPlaying(true);
       }
@@ -151,7 +166,7 @@ export function AudioRecordingProvider({ children }: { children: React.ReactNode
       setError(errorMessage);
       console.error('Error playing recording:', errorMessage);
     }
-  }, [audioUrl]);
+  }, [audioUrl, recordedText]);
 
   const pausePlayback = useCallback(() => {
     try {
@@ -173,12 +188,14 @@ export function AudioRecordingProvider({ children }: { children: React.ReactNode
     audioBlob,
     audioUrl,
     error,
+    recordedText,
     startRecording,
     stopRecording,
     pauseRecording,
     resumeRecording,
     playRecording,
     pausePlayback,
+    setRecordedText,
   };
 
   return (
