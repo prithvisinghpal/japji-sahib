@@ -71,34 +71,59 @@ export function useAudioRecorder() {
   
   // Stop recording
   const stopRecording = () => {
+    console.log('stopRecording called, current state:', mediaRecorder.current?.state);
     if (mediaRecorder.current && isRecording) {
-      mediaRecorder.current.stop();
-      setIsRecording(false);
-      setIsPaused(false);
+      try {
+        mediaRecorder.current.stop();
+        setIsRecording(false);
+        setIsPaused(false);
+        
+        // Stop all tracks in the stream to fully release the microphone
+        if (stream.current) {
+          stream.current.getTracks().forEach(track => track.stop());
+          stream.current = null;
+        }
+      } catch (err) {
+        console.error('Error stopping recording:', err);
+        setError('Failed to stop recording properly. Please reload the page if issues persist.');
+        // Force state reset in case of error
+        setIsRecording(false);
+        setIsPaused(false);
+      }
+    } else {
+      console.warn('Cannot stop: MediaRecorder not recording or not initialized');
     }
   };
   
   // Pause recording
   const pauseRecording = () => {
+    console.log('pauseRecording called, current state:', mediaRecorder.current?.state);
     if (mediaRecorder.current && isRecording && mediaRecorder.current.state === 'recording') {
       try {
         mediaRecorder.current.pause();
         setIsPaused(true);
       } catch (err) {
         console.error('Error pausing recording:', err);
+        setError('Failed to pause recording. Please try again.');
       }
+    } else {
+      console.warn('Cannot pause: MediaRecorder not in recording state or not initialized');
     }
   };
   
   // Resume recording
   const resumeRecording = () => {
+    console.log('resumeRecording called, current state:', mediaRecorder.current?.state);
     if (mediaRecorder.current && isRecording && mediaRecorder.current.state === 'paused') {
       try {
         mediaRecorder.current.resume();
         setIsPaused(false);
       } catch (err) {
         console.error('Error resuming recording:', err);
+        setError('Failed to resume recording. Please try again.');
       }
+    } else {
+      console.warn('Cannot resume: MediaRecorder not in paused state or not initialized');
     }
   };
   

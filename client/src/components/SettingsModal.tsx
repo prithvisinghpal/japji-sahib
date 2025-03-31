@@ -115,6 +115,14 @@ export default function SettingsModal() {
                   onCheckedChange={(checked) => updateSettings({ realtimeFeedback: checked })}
                 />
               </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="debugMode">Debug Mode</Label>
+                <Switch
+                  id="debugMode"
+                  checked={settings.debugMode}
+                  onCheckedChange={(checked) => updateSettings({ debugMode: checked })}
+                />
+              </div>
             </div>
           </div>
         </div>

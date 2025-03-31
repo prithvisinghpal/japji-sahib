@@ -62,43 +62,48 @@ export function useSpeechRecognition() {
       // Event handlers
       recognition.current.onresult = (event: any) => {
         try {
-          if (!event.results || event.resultIndex >= event.results.length) {
-            console.error('Invalid speech recognition result event:', event);
+          console.log('👂 Speech recognition result event received:', event);
+          
+          if (!event.results || event.results.length === 0) {
+            console.error('👂 Invalid speech recognition result event - empty results:', event);
             return;
           }
           
-          // Get the result
-          const resultIndex = event.resultIndex;
-          const transcript = event.results[resultIndex][0].transcript;
+          // Get the results from the event
+          let transcript = '';
           
-          console.log('❗Speech recognition result:', transcript);
-          console.log('❗Speech recognition confidence:', event.results[resultIndex][0].confidence);
+          // Process all results in the event (not just the latest)
+          for (let i = 0; i < event.results.length; i++) {
+            // Check if this result is final
+            if (event.results[i].isFinal) {
+              const result = event.results[i][0].transcript;
+              console.log(`👂 Final result [${i}]:`, result);
+              transcript += ' ' + result;
+            } else if (settings.realtimeFeedback) {
+              // Include interim results only if realtime feedback is enabled
+              const result = event.results[i][0].transcript;
+              console.log(`👂 Interim result [${i}]:`, result);
+              transcript += ' ' + result;
+            }
+          }
           
-          // Debug the event structure
-          console.log('❗Event structure:', {
-            resultIndex,
-            isFinal: event.results[resultIndex].isFinal,
-            results: Array.from(event.results).map((r: any) => ({
-              transcript: r[0]?.transcript,
-              confidence: r[0]?.confidence,
-              isFinal: r.isFinal
-            }))
-          });
-          
-          // Update transcript
-          setTranscript(prevTranscript => {
-            const newTranscript = prevTranscript + ' ' + transcript;
-            console.log('❗Updated full transcript:', newTranscript);
+          if (transcript.trim()) {
+            console.log('👂 Combined transcript:', transcript);
             
-            // Process the recognized text regardless of settings
-            // We need to see if this is being called at all
-            console.log('❗Sending transcript for processing...');
-            processRecognizedText(newTranscript);
-            
-            return newTranscript;
-          });
+            // Update transcript state
+            setTranscript(prevTranscript => {
+              const newTranscript = prevTranscript + transcript;
+              console.log('👂 Updated full transcript:', newTranscript);
+              
+              // Process recognized text for feedback
+              console.log('👂 Sending transcript for processing...');
+              processRecognizedText(newTranscript);
+              
+              return newTranscript;
+            });
+          }
         } catch (err) {
-          console.error('Error processing speech recognition result:', err);
+          console.error('👂 Error processing speech recognition result:', err);
         }
       };
       

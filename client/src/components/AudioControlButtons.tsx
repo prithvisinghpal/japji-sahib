@@ -2,12 +2,18 @@ import { Button } from "@/components/ui/button";
 import { Mic, Square, Pause, Play } from "lucide-react";
 import { useAudioRecorder } from "../hooks/useAudioRecorder";
 import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
+import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 export default function AudioControlButtons() {
+  // Get toast for notifications
+  const { toast } = useToast();
+  
   // Get audio recorder state and functions
   const {
     isRecording,
     isPaused,
+    error: recorderError,
     startRecording,
     stopRecording,
     pauseRecording,
@@ -15,13 +21,66 @@ export default function AudioControlButtons() {
   } = useAudioRecorder();
 
   // Get speech recognition state and functions
-  const { startSpeechRecognition, stopSpeechRecognition } = useSpeechRecognition();
+  const { 
+    isListening, 
+    error: recognitionError,
+    transcript,
+    startSpeechRecognition, 
+    stopSpeechRecognition 
+  } = useSpeechRecognition();
+  
+  // Display any errors as toast notifications
+  useEffect(() => {
+    if (recorderError) {
+      toast({
+        title: "Recording Error",
+        description: recorderError,
+        variant: "destructive",
+      });
+    }
+  }, [recorderError, toast]);
+  
+  useEffect(() => {
+    if (recognitionError) {
+      toast({
+        title: "Speech Recognition Error",
+        description: recognitionError,
+        variant: "destructive",
+      });
+    }
+  }, [recognitionError, toast]);
+  
+  // Log when transcript changes
+  useEffect(() => {
+    if (transcript) {
+      console.log("🎤 Current speech transcript:", transcript);
+    }
+  }, [transcript]);
 
   // Handle start recording
   const handleStartRecording = async () => {
     console.log("Starting recording and speech recognition");
-    await startRecording();
-    startSpeechRecognition();
+    try {
+      await startRecording();
+      
+      // Small delay to ensure audio recording is initialized
+      setTimeout(() => {
+        startSpeechRecognition();
+        console.log("🎤 Speech recognition initialized");
+        
+        toast({
+          title: "Recitation Started",
+          description: "Your recitation is now being recorded and analyzed.",
+        });
+      }, 500);
+    } catch (err) {
+      console.error("Error starting recitation:", err);
+      toast({
+        title: "Error Starting Recitation",
+        description: "There was a problem starting your recitation. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle stop recording
@@ -29,6 +88,11 @@ export default function AudioControlButtons() {
     console.log("Stopping recording and speech recognition");
     stopRecording();
     stopSpeechRecognition();
+    
+    toast({
+      title: "Recitation Stopped",
+      description: "Your recitation has been processed.",
+    });
   };
 
   // Handle pause recording
@@ -36,13 +100,27 @@ export default function AudioControlButtons() {
     console.log("Pausing recording and speech recognition");
     pauseRecording();
     stopSpeechRecognition();
+    
+    toast({
+      title: "Recitation Paused",
+      description: "You can resume your recitation at any time.",
+    });
   };
 
   // Handle resume recording
   const handleResumeRecording = () => {
     console.log("Resuming recording and speech recognition");
     resumeRecording();
-    startSpeechRecognition();
+    
+    // Small delay to ensure audio recording is resumed
+    setTimeout(() => {
+      startSpeechRecognition();
+      
+      toast({
+        title: "Recitation Resumed",
+        description: "Continue your recitation from where you left off.",
+      });
+    }, 500);
   };
 
   return (

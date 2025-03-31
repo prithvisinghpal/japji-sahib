@@ -108,8 +108,9 @@ export function useRecitation() {
       
       // Try to use the API first
       try {
+        // First try the new endpoint
         console.log('🔴 Calling API at /api/japji-sahib/compare');
-        const response = await fetch('/api/japji-sahib/compare', {
+        let response = await fetch('/api/japji-sahib/compare', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -119,6 +120,21 @@ export function useRecitation() {
             referenceText: referenceTextToUse
           })
         });
+        
+        // If that fails, try the older endpoint
+        if (!response.ok) {
+          console.log('🔴 First API endpoint failed, trying /api/compare-recitation');
+          response = await fetch('/api/compare-recitation', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+              recitedText: recognizedText,
+              referenceText: referenceTextToUse
+            })
+          });
+        }
         
         if (!response.ok) {
           throw new Error(`API error: ${response.status} ${response.statusText}`);
@@ -130,10 +146,14 @@ export function useRecitation() {
         // Update state based on comparison results
         if (result && result.words) {
           updateRecitationState(result.words);
+          console.log('🔴 Updated recitation state with API result words');
+        } else {
+          console.log('🔴 API result missing words property:', result);
         }
         
         if (result && result.feedback) {
           setFeedback(result.feedback);
+          console.log('🔴 Updated feedback with API result feedback');
         }
         
         return; // Exit function if API call succeeded

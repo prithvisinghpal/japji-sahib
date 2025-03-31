@@ -8,6 +8,7 @@ type Settings = {
   darkMode: boolean;
   strictnessLevel: "relaxed" | "standard" | "strict";
   realtimeFeedback: boolean;
+  debugMode: boolean;
 };
 
 // Define the context type
@@ -30,7 +31,8 @@ const defaultSettings: Settings = {
   fontSize: "medium",
   darkMode: false,
   strictnessLevel: "standard",
-  realtimeFeedback: true
+  realtimeFeedback: true,
+  debugMode: false
 };
 
 // Create context
