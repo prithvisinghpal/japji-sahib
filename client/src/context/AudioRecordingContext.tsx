@@ -14,7 +14,8 @@ type AudioRecordingContextType = {
   resumeRecording: () => void;
   playRecording: () => void;
   pausePlayback: () => void;
-  setRecordedText: (text: string) => void;
+  setRecordedText: (text: string | null) => void;
+  resetRecording: () => void;
 };
 
 const AudioRecordingContext = createContext<AudioRecordingContextType | undefined>(undefined);
@@ -180,6 +181,51 @@ export function AudioRecordingProvider({ children }: { children: React.ReactNode
       console.error('Error pausing playback:', errorMessage);
     }
   }, [isPlaying]);
+  
+  const resetRecording = useCallback(() => {
+    try {
+      console.log("Resetting audio recording state");
+      
+      // Stop any ongoing recording
+      if (isRecording && mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+      }
+      
+      // Stop any ongoing playback
+      if (isPlaying && audioElementRef.current) {
+        audioElementRef.current.pause();
+      }
+      
+      // Reset all states
+      setIsRecording(false);
+      setIsPaused(false);
+      setIsPlaying(false);
+      
+      // Clear recorded audio
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+      
+      setAudioBlob(null);
+      setAudioUrl(null);
+      setRecordedText(null);
+      setError(null);
+      
+      // Clear audio element
+      if (audioElementRef.current) {
+        audioElementRef.current.src = '';
+      }
+      
+      // Reset audio chunks
+      audioChunksRef.current = [];
+      
+      console.log("Audio recording state has been reset");
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error resetting recording';
+      setError(errorMessage);
+      console.error('Error resetting recording:', errorMessage);
+    }
+  }, [isRecording, isPlaying, audioUrl]);
 
   const value = {
     isRecording,
@@ -196,6 +242,7 @@ export function AudioRecordingProvider({ children }: { children: React.ReactNode
     playRecording,
     pausePlayback,
     setRecordedText,
+    resetRecording,
   };
 
   return (

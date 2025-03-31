@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Mic, Square, Pause, Play } from "lucide-react";
+import { Mic, Square, Pause, Play, RefreshCw } from "lucide-react";
 import { useSpeechRecognition } from "../hooks/useSpeechRecognition";
 import { useToast } from "@/hooks/use-toast";
 import { useEffect, useState, useCallback } from "react";
@@ -17,16 +17,23 @@ export default function AudioControlButtons() {
   // Get recitation processor
   const { restartRecitation, processRecognizedText } = useRecitation();
   
-  // Get audio recorder state and functions
+  // Get all audio recording state and functions
   const {
     isRecording,
     isPaused,
+    isPlaying,
+    audioBlob,
+    audioUrl,
     error: recorderError,
+    recordedText,
     startRecording,
     stopRecording,
     pauseRecording,
     resumeRecording,
+    playRecording,
+    pausePlayback,
     setRecordedText,
+    resetRecording,
   } = useAudioRecording();
 
   // Get speech recognition state and functions
@@ -49,7 +56,7 @@ export default function AudioControlButtons() {
     }, [processRecognizedText, setRecordedText])
   });
   
-  // Display any errors as toast notifications
+  // Handle errors
   useEffect(() => {
     if (recorderError) {
       toast({
@@ -70,14 +77,14 @@ export default function AudioControlButtons() {
     }
   }, [recognitionError, toast]);
   
-  // Log when transcript changes
+  // Log transcript changes
   useEffect(() => {
     if (transcript) {
       console.log("🎤 Current speech transcript:", transcript);
     }
   }, [transcript]);
   
-  // Handle start recording with debounce
+  // Handle start recording
   const handleStartRecording = async () => {
     if (isProcessing) return;
     
@@ -206,51 +213,101 @@ export default function AudioControlButtons() {
       setIsProcessing(false);
     }
   };
-
-  const { isPlaying, playRecording, pausePlayback, audioBlob } = useAudioRecording();
+  
+  // Handle complete restart of the application
+  const handleClearAndRestart = () => {
+    try {
+      console.log("Clearing and restarting everything");
+      
+      // Stop any ongoing processes
+      if (isListening) {
+        stopSpeechRecognition();
+      }
+      
+      // Reset the audio recording state (this will handle stopping recording and playback)
+      resetRecording();
+      
+      // Reset the recitation state
+      restartRecitation();
+      
+      toast({
+        title: "Reset Complete",
+        description: "All recordings and progress have been cleared. You can start fresh now.",
+        duration: 3000,
+      });
+    } catch (err) {
+      console.error("Error resetting the application:", err);
+      toast({
+        title: "Error Resetting",
+        description: "There was a problem resetting the application. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
-    <div className="flex justify-center gap-2 my-4">
-      {!isRecording ? (
-        <>
-          <Button
-            onClick={handleStartRecording}
-            className="bg-primary hover:bg-primary/90 text-white"
-          >
-            <Mic className="mr-2 h-4 w-4" />
-            Start Recitation
-          </Button>
-          {audioBlob && <ReplayButton />}
-        </>
-      ) : (
-        <>
-          {!isPaused ? (
+    <div className="flex flex-col gap-2 my-4">
+      <div className="flex justify-center gap-2">
+        {!isRecording ? (
+          <>
             <Button
-              onClick={handlePauseRecording}
-              variant="outline"
-              className="border-amber-500 text-amber-500 hover:bg-amber-50"
+              onClick={handleStartRecording}
+              className="bg-primary hover:bg-primary/90 text-white"
             >
-              <Pause className="mr-2 h-4 w-4" />
-              Pause
+              <Mic className="mr-2 h-4 w-4" />
+              Start Recitation
             </Button>
-          ) : (
+            
+            {audioBlob && (
+              <ReplayButton />
+            )}
+          </>
+        ) : (
+          <>
+            {!isPaused ? (
+              <Button
+                onClick={handlePauseRecording}
+                variant="outline"
+                className="border-amber-500 text-amber-500 hover:bg-amber-50"
+              >
+                <Pause className="mr-2 h-4 w-4" />
+                Pause
+              </Button>
+            ) : (
+              <Button
+                onClick={handleResumeRecording}
+                variant="outline"
+                className="border-green-500 text-green-500 hover:bg-green-50"
+              >
+                <Play className="mr-2 h-4 w-4" />
+                Resume
+              </Button>
+            )}
+            
             <Button
-              onClick={handleResumeRecording}
-              variant="outline"
-              className="border-green-500 text-green-500 hover:bg-green-50"
+              onClick={handleStopRecording}
+              variant="destructive"
             >
-              <Play className="mr-2 h-4 w-4" />
-              Resume
+              <Square className="mr-2 h-4 w-4" />
+              Stop
             </Button>
-          )}
+          </>
+        )}
+      </div>
+      
+      {/* Clear & Restart Button - only show when not recording */}
+      {!isRecording && (
+        <div className="flex justify-center mt-2">
           <Button
-            onClick={handleStopRecording}
-            variant="destructive"
+            onClick={handleClearAndRestart}
+            variant="outline"
+            className="border-gray-400 text-gray-600 hover:bg-gray-50"
+            size="sm"
           >
-            <Square className="mr-2 h-4 w-4" />
-            Stop
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Clear & Restart
           </Button>
-        </>
+        </div>
       )}
     </div>
   );
