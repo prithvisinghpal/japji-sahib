@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 
 export function useAudioRecorder() {
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [error, setError] = useState<string | null>(null);
   
@@ -61,6 +62,7 @@ export function useAudioRecorder() {
       mediaRecorder.current.start();
       console.log('MediaRecorder started with state:', mediaRecorder.current.state);
       setIsRecording(true);
+      setIsPaused(false);
     } catch (err) {
       console.error('Error starting recording:', err);
       setError('Failed to start recording. Please ensure you have granted microphone permissions.');
@@ -72,6 +74,7 @@ export function useAudioRecorder() {
     if (mediaRecorder.current && isRecording) {
       mediaRecorder.current.stop();
       setIsRecording(false);
+      setIsPaused(false);
     }
   };
   
@@ -80,6 +83,7 @@ export function useAudioRecorder() {
     if (mediaRecorder.current && isRecording && mediaRecorder.current.state === 'recording') {
       try {
         mediaRecorder.current.pause();
+        setIsPaused(true);
       } catch (err) {
         console.error('Error pausing recording:', err);
       }
@@ -91,6 +95,7 @@ export function useAudioRecorder() {
     if (mediaRecorder.current && isRecording && mediaRecorder.current.state === 'paused') {
       try {
         mediaRecorder.current.resume();
+        setIsPaused(false);
       } catch (err) {
         console.error('Error resuming recording:', err);
       }
@@ -99,6 +104,7 @@ export function useAudioRecorder() {
   
   return {
     isRecording,
+    isPaused,
     audioBlob,
     error,
     startRecording,

@@ -2,7 +2,8 @@ import { Card } from "./ui/card";
 import { Button } from "./ui/button";
 import { HelpCircle, RefreshCcw } from "lucide-react";
 import GurmukthiText from "./GurmukthiText";
-import AudioControls from "./AudioControls";
+import AudioControlButtons from "./AudioControlButtons";
+import AudioWaveform from "./AudioWaveform";
 import { useRecitation } from "../hooks/useRecitation";
 import { useSettings } from "../context/SettingsContext";
 
@@ -53,11 +54,18 @@ export default function RecitationCard() {
         </div>
       </div>
       
-      {/* Gurmukhi Text Display */}
-      <GurmukthiText recitationState={recitationState} />
+      {/* Audio Control Buttons - Centered below progress bar */}
+      <AudioControlButtons />
       
-      {/* Audio Controls */}
-      <AudioControls />
+      {/* Gurmukhi Text Display */}
+      <div className="my-6 flex-grow overflow-y-auto">
+        <GurmukthiText recitationState={recitationState} />
+      </div>
+      
+      {/* Audio Waveform */}
+      <div className="mt-auto">
+        <AudioWaveform />
+      </div>
     </Card>
   );
 }
