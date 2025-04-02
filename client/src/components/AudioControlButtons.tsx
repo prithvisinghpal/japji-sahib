@@ -48,11 +48,20 @@ export default function AudioControlButtons() {
   } = useSpeechRecognition({
     onTranscriptChange: useCallback((newTranscript: string) => {
       console.log("🎯 Transcript change detected, forwarding to recitation processor");
-      // Process the transcript for visualization
-      processRecognizedText(newTranscript);
+      if (newTranscript && newTranscript.trim() !== '') {
+        // Process the transcript for visualization
+        processRecognizedText(newTranscript);
       
-      // Save the transcript in the audio recording context for replay
-      setRecordedText(newTranscript);
+        // Save the transcript in the audio recording context for replay
+        setRecordedText(newTranscript);
+        
+        // Log detailed info for debugging
+        console.log("🎯 Text processing pipeline triggered:", {
+          transcriptLength: newTranscript.length,
+          transcriptSample: newTranscript.substring(0, 50) + '...',
+          processingTime: new Date().toISOString()
+        });
+      }
     }, [processRecognizedText, setRecordedText])
   });
   

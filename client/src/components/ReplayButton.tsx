@@ -37,6 +37,13 @@ export default function ReplayButton() {
     } else {
       if (recordedText) {
         console.log("Starting playback with recorded text:", recordedText.substring(0, 50) + "...");
+        
+        // Make sure we're triggering this event directly
+        window.dispatchEvent(new CustomEvent('audio-playback-started', { 
+          detail: { recordedText } 
+        }));
+      } else {
+        console.warn("No recorded text available for playback");
       }
       playRecording();
     }

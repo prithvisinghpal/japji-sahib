@@ -28,7 +28,25 @@ export default function RecitationCard() {
     setRecordedText
   } = useAudioRecording();
   
-  // Simulate highlighting during playback
+  // Listen for the custom audio playback event
+  useEffect(() => {
+    const handlePlaybackStarted = (event: any) => {
+      const { recordedText } = event.detail;
+      if (recordedText) {
+        console.log("🎵 Custom event: audio-playback-started with text:", 
+          recordedText.substring(0, 50) + "...");
+        processRecognizedText(recordedText);
+      }
+    };
+    
+    window.addEventListener('audio-playback-started', handlePlaybackStarted);
+    
+    return () => {
+      window.removeEventListener('audio-playback-started', handlePlaybackStarted);
+    };
+  }, [processRecognizedText]);
+  
+  // Handle highlighting during playback and audio state changes
   useEffect(() => {
     if (isPlaying && recordedText) {
       console.log("🎵 Playing back with text:", recordedText);
@@ -36,6 +54,15 @@ export default function RecitationCard() {
       processRecognizedText(recordedText);
     }
   }, [isPlaying, recordedText, processRecognizedText]);
+  
+  // Make sure we process text even when it changes during recording
+  useEffect(() => {
+    if (recordedText && (isRecording || isPlaying)) {
+      console.log("🎵 Text updated during recording/playback, processing text:", 
+        recordedText.substring(0, 50) + "...");
+      processRecognizedText(recordedText);
+    }
+  }, [recordedText, isRecording, isPlaying, processRecognizedText]);
   
   // For debugging purpose - set a test progress percentage
   const testProgress = () => {

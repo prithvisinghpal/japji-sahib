@@ -9,19 +9,19 @@ const AUDIO_SOURCES = [
   {
     id: 'source1',
     name: 'Soothing Male Voice',
-    url: 'https://www.sikhnet.com/files/JapjiSahib.mp3',
+    url: 'https://raw.githubusercontent.com/gurmukhgill/GurbaniAudio/main/JapjiSahib.mp3',
     type: 'audio/mp3'
   },
   {
     id: 'source2',
     name: 'Classical Style',
-    url: 'https://www.sikhnet.com/files/Japji%20Sahib%20-%20Bhai%20Tarlochan%20Singh%20Ji%20Ragi%20Singhs%20on%20SikhNet.mp3',
+    url: 'https://raw.githubusercontent.com/gurmukhgill/GurbaniAudio/main/JapjiSahib-Classic.mp3',
     type: 'audio/mp3'
   },
   {
     id: 'source3',
-    name: 'Harmonium Accompaniment',
-    url: 'https://www.sikhnet.com/files/Japji%20sahib%20-%20Bhai%20Davinder%20Singh%20Sodhi%20on%20SikhNet.mp3',
+    name: 'Female Voice',
+    url: 'https://raw.githubusercontent.com/gurmukhgill/GurbaniAudio/main/JapjiSahib-Female.mp3',
     type: 'audio/mp3'
   }
 ];
