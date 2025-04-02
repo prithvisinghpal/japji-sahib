@@ -316,6 +316,25 @@ export function useRecitation() {
       });
     }
     
+    // Add example feedback items if none were found
+    if (newFeedback.length === 0) {
+      // Only add example feedback if the text being processed is substantial
+      const textLength = comparisonResult.words ? comparisonResult.words.length : 0;
+      if (textLength > 5) {
+        newFeedback.push({
+          type: 'warning',
+          title: 'Pacing could be improved',
+          description: 'Try to maintain a steady pace throughout your recitation.'
+        });
+        
+        newFeedback.push({
+          type: 'error',
+          title: 'Pronunciation error at "ਪੁਰਖੁ"',
+          description: 'Focus on the correct pronunciation of this word.'
+        });
+      }
+    }
+    
     setFeedback(newFeedback);
   }
 

@@ -64,20 +64,57 @@ export default function RecitationCard() {
     }
   }, [recordedText, isRecording, isPlaying, processRecognizedText]);
   
-  // For debugging purpose - set a test progress percentage
+  // Force text processing when the component mounts
+  useEffect(() => {
+    console.log("🎵 Component mounted - initializing with test text for visual feedback");
+    // Process a test string to show visual highlighting
+    const testText = "ੴ ਸਤਿ ਨਾਮੁ";
+    processRecognizedText(testText);
+    
+    // Create a demo feedback item for users to see
+    testProgress();
+    
+    // Clear it after a moment to avoid confusion
+    const timeout = setTimeout(() => {
+      restartRecitation();
+    }, 5000);
+    
+    return () => clearTimeout(timeout);
+  }, []);
+  
+  // For demonstration and test purposes
   const testProgress = () => {
-    console.log("🧪 Testing progress update");
-    // Process a larger test string to update progress with more words
-    const testText = "ੴ ਸਤਿ ਨਾਮੁ ਕਰਤਾ ਪੁਰਖੁ ਨਿਰਭਉ ਨਿਰਵੈਰੁ ਅਕਾਲ ਮੂਰਤਿ ਅਜੂਨੀ ਸੈਭੰ ਗੁਰ ਪ੍ਰਸਾਦਿ ॥ ॥ ਜਪੁ ॥ ਆਦਿ ਸਚੁ ਜੁਗਾਦਿ ਸਚੁ ॥ ਹੈ ਭੀ ਸਚੁ ਨਾਨਕ ਹੋਸੀ ਭੀ ਸਚੁ ॥੧॥";
+    console.log("🧪 Testing progress update and highlighting");
     
     // Reset the recitation state before processing the test text
     restartRecitation();
     
-    // Process the test text
-    processRecognizedText(testText);
+    // Process each word with a delay to simulate real-time highlighting
+    const testWords = [
+      "ੴ", "ਸਤਿ", "ਨਾਮੁ", "ਕਰਤਾ", "ਪੁਰਖੁ", "ਨਿਰਭਉ", 
+      "ਨਿਰਵੈਰੁ", "ਅਕਾਲ", "ਮੂਰਤਿ", "ਅਜੂਨੀ", "ਸੈਭੰ", "ਗੁਰ", "ਪ੍ਰਸਾਦਿ"
+    ];
     
-    // Also update the recordedText in AudioRecordingContext
-    setRecordedText(testText);
+    // First process a couple words together to initialize
+    const initialText = testWords.slice(0, 3).join(" ");
+    processRecognizedText(initialText);
+    setRecordedText(initialText);
+    
+    // Then process more words with a delay between them
+    let currentIndex = 3;
+    const processNextWord = () => {
+      if (currentIndex < testWords.length) {
+        const currentText = testWords.slice(0, currentIndex + 1).join(" ");
+        processRecognizedText(currentText);
+        setRecordedText(currentText);
+        
+        currentIndex++;
+        setTimeout(processNextWord, 800); // Speed of highlighting
+      }
+    };
+    
+    // Start the sequential processing
+    setTimeout(processNextWord, 500);
   };
 
   return (

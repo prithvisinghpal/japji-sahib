@@ -31,17 +31,37 @@
 .highlighted {
   background-color: rgba(230, 180, 34, 0.3);
   border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+  margin: 0 -0.25rem;
+  animation: pulse 1.5s infinite;
 }
 .error {
   background-color: rgba(239, 68, 68, 0.2);
   border-radius: 0.25rem;
   text-decoration: line-through;
   text-decoration-color: #EF4444;
+  padding: 0.125rem 0.25rem;
+  margin: 0 -0.25rem;
 }
 .correct {
   background-color: rgba(16, 185, 129, 0.2);
   border-radius: 0.25rem;
+  padding: 0.125rem 0.25rem;
+  margin: 0 -0.25rem;
 }
 .current {
   border-bottom: 2px solid #5D28A0;
+  font-weight: 500;
+}
+
+@keyframes pulse {
+  0% {
+    background-color: rgba(230, 180, 34, 0.1);
+  }
+  50% {
+    background-color: rgba(230, 180, 34, 0.3);
+  }
+  100% {
+    background-color: rgba(230, 180, 34, 0.1);
+  }
 }

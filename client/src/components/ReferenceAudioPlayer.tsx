@@ -9,19 +9,19 @@ const AUDIO_SOURCES = [
   {
     id: 'source1',
     name: 'Soothing Male Voice',
-    url: 'https://raw.githubusercontent.com/gurmukhgill/GurbaniAudio/main/JapjiSahib.mp3',
+    url: 'https://sikhsoul.com/audio-files/nitnem/Japji%20Sahib.mp3',
     type: 'audio/mp3'
   },
   {
     id: 'source2',
     name: 'Classical Style',
-    url: 'https://raw.githubusercontent.com/gurmukhgill/GurbaniAudio/main/JapjiSahib-Classic.mp3',
+    url: 'https://sikhsoul.com/audio-files/nitnem/japji-sahib-with-music.mp3',
     type: 'audio/mp3'
   },
   {
     id: 'source3',
     name: 'Female Voice',
-    url: 'https://raw.githubusercontent.com/gurmukhgill/GurbaniAudio/main/JapjiSahib-Female.mp3',
+    url: 'https://sikhsoul.com/audio-files/nitnem/JapjiSahib-Female.mp3',
     type: 'audio/mp3'
   }
 ];
