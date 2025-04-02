@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
@@ -8,20 +8,20 @@ import { cn } from '@/lib/utils';
 const AUDIO_SOURCES = [
   {
     id: 'source1',
-    name: 'Soothing Male Voice',
-    url: 'https://sikhsoul.com/audio-files/nitnem/Japji%20Sahib.mp3',
+    name: 'Bhai Harjinder Singh',
+    url: 'https://old.sgpc.net/CDN/audio/JAPJI%20SAHIB.mp3',
     type: 'audio/mp3'
   },
   {
     id: 'source2',
-    name: 'Classical Style',
-    url: 'https://sikhsoul.com/audio-files/nitnem/japji-sahib-with-music.mp3',
+    name: 'Bhai Jarnail Singh',
+    url: 'https://www.gurmatveechar.com//audios/Katha/01_Puratan_Katha/Sant_Gurbachan_Singh_%28Bhindran_wale%29/Japji_Sahib/Japji_Sahib_01.mp3',
     type: 'audio/mp3'
   },
   {
     id: 'source3',
-    name: 'Female Voice',
-    url: 'https://sikhsoul.com/audio-files/nitnem/JapjiSahib-Female.mp3',
+    name: 'Classical Style',
+    url: 'https://www.sikhnet.com/files/sohila/track1.mp3',
     type: 'audio/mp3'
   }
 ];
@@ -35,18 +35,56 @@ export default function ReferenceAudioPlayer() {
   const [isMuted, setIsMuted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   
+  // Add effect to initialize audio element
+  useEffect(() => {
+    console.log("🎧 Audio component mounted, initializing audio");
+    
+    // Make sure the audio element is set up properly
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+      
+      // Add error handling
+      const handleError = (e: any) => {
+        console.error("🎧 Audio error:", e);
+        setIsLoading(false);
+        setIsPlaying(false);
+        alert("There was an error with the audio source. Please try a different audio source.");
+      };
+      
+      audioRef.current.addEventListener('error', handleError);
+      
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.removeEventListener('error', handleError);
+        }
+      };
+    }
+  }, []);
+  
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   // Handle play/pause toggle
-  const togglePlayPause = () => {
+  const togglePlayPause = async () => {
     if (!audioRef.current) return;
     
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      audioRef.current.play();
+    try {
+      console.log("🎧 Toggle play/pause clicked");
+      
+      if (isPlaying) {
+        console.log("🎧 Pausing audio");
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        console.log("🎧 Playing audio");
+        // Force reload the audio element before playing
+        audioRef.current.load();
+        await audioRef.current.play();
+        setIsPlaying(true);
+      }
+    } catch (error) {
+      console.error("🎧 Error toggling audio playback:", error);
+      alert("There was an error playing the audio. Please try a different source or refresh the page.");
     }
-    setIsPlaying(!isPlaying);
   };
   
   // Handle audio source change

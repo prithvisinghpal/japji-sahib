@@ -40,13 +40,7 @@ export type FeedbackItem = {
 };
 
 export function useRecitation() {
-  // Fetch the reference text from the server
-  const { data: referenceText } = useQuery({
-    queryKey: ['/api/japji-sahib/text'],
-    refetchOnWindowFocus: false,
-  });
-
-  // Initialize state
+  // Initialize state with default values
   const [recitationState, setRecitationState] = useState<RecitationState>({
     paras: [],
     currentPosition: {
@@ -58,12 +52,38 @@ export function useRecitation() {
   const [progressPercentage, setProgressPercentage] = useState(0);
   const [feedback, setFeedback] = useState<FeedbackItem[]>([]);
 
-  // Initialize with reference text
+  // Fetch the reference text from the server
+  const { data: referenceText, isLoading, isError } = useQuery({
+    queryKey: ['/api/japji-sahib/text'],
+    refetchOnWindowFocus: false,
+  });
+
+  // Always initialize with FALLBACK_TEXT on component mount, then update with server text if available
   useEffect(() => {
-    // Use server-provided text if available, otherwise use fallback
-    const textToUse = (referenceText as string) || FALLBACK_TEXT;
-    initializeRecitationState(textToUse);
-  }, [referenceText]);
+    console.log("🔄 Initializing with fallback text first (immediate render)");
+    console.log("🔄 Fallback text sample:", FALLBACK_TEXT.substring(0, 50) + "...");
+    initializeRecitationState(FALLBACK_TEXT);
+  }, []);
+  
+  // Initialize with reference text when it becomes available
+  useEffect(() => {
+    // Use server-provided text if available
+    if (referenceText) {
+      console.log("🔄 Server text received, initializing with server text:", 
+        typeof referenceText === 'string' ? referenceText.substring(0, 30) + "..." : "Non-string data");
+      
+      if (typeof referenceText === 'string') {
+        initializeRecitationState(referenceText);
+      } else {
+        console.error("🔄 Server text is not a string:", referenceText);
+        // Fallback to default text if server response is not a string
+        initializeRecitationState(FALLBACK_TEXT);
+      }
+    } else if (isError) {
+      console.error("🔄 Error fetching server text, using fallback");
+      initializeRecitationState(FALLBACK_TEXT);
+    }
+  }, [referenceText, isError]);
 
   function initializeRecitationState(text: string) {
     const paras = text.split("\n").map(paraText => {

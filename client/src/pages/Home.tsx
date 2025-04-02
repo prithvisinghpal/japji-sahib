@@ -8,6 +8,7 @@ import HelpModal from "../components/HelpModal";
 import { useRecitation } from "../hooks/useRecitation";
 
 export default function Home() {
+  // Ensure this hook is called in the same order every time
   const { feedback } = useRecitation();
 
   return (

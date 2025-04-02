@@ -1,15 +1,17 @@
 import { Card } from "./ui/card";
 import { Button } from "./ui/button";
-import { HelpCircle, RefreshCcw } from "lucide-react";
+import { HelpCircle, RefreshCcw, Play, Sparkles } from "lucide-react";
 import GurmukthiText from "./GurmukthiText";
 import AudioControlButtons from "./AudioControlButtons";
 import AudioWaveform from "./AudioWaveform";
 import { useRecitation } from "../hooks/useRecitation";
 import { useSettings } from "../context/SettingsContext";
 import { useAudioRecording } from "../context/AudioRecordingContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function RecitationCard() {
+  const [isTestingProgress, setIsTestingProgress] = useState(false);
+  
   const { 
     recitationState, 
     progressPercentage,
@@ -67,20 +69,27 @@ export default function RecitationCard() {
   // Force text processing when the component mounts
   useEffect(() => {
     console.log("🎵 Component mounted - initializing with test text for visual feedback");
-    // Process a test string to show visual highlighting
-    const testText = "ੴ ਸਤਿ ਨਾਮੁ";
-    processRecognizedText(testText);
     
-    // Create a demo feedback item for users to see
-    testProgress();
-    
-    // Clear it after a moment to avoid confusion
+    // Wait a moment to make sure recitation state is initialized first
     const timeout = setTimeout(() => {
-      restartRecitation();
-    }, 5000);
+      if (recitationState.paras.length === 0) {
+        console.log("🎵 No recitation state found, using direct approach");
+        
+        // Process a test string to show visual highlighting
+        const testText = "ੴ ਸਤਿ ਨਾਮੁ";
+        processRecognizedText(testText);
+        
+        // Create a demo feedback item for users to see
+        testProgress();
+      } else {
+        console.log("🎵 Recitation state already initialized:", 
+          recitationState.paras.length, "paragraphs with", 
+          recitationState.paras.reduce((sum, p) => sum + p.words.length, 0), "words total");
+      }
+    }, 1000);
     
     return () => clearTimeout(timeout);
-  }, []);
+  }, [recitationState.paras.length]);
   
   // For demonstration and test purposes
   const testProgress = () => {
@@ -140,12 +149,28 @@ export default function RecitationCard() {
           </Button>
           {/* Test button for progress */}
           <Button
-            variant="outline"
+            variant={isTestingProgress ? "default" : "outline"}
             size="sm"
-            onClick={testProgress}
-            className="text-xs"
+            onClick={() => {
+              setIsTestingProgress(true);
+              testProgress();
+              // Reset testing state after animation completes
+              setTimeout(() => setIsTestingProgress(false), 11000);
+            }}
+            className="text-xs flex items-center gap-1"
+            disabled={isTestingProgress}
           >
-            Test Progress
+            {isTestingProgress ? (
+              <>
+                <Sparkles className="h-3.5 w-3.5 animate-pulse" />
+                Testing...
+              </>
+            ) : (
+              <>
+                <Play className="h-3.5 w-3.5" />
+                Test Progress
+              </>
+            )}
           </Button>
         </div>
       </div>
