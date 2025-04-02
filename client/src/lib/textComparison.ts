@@ -111,7 +111,7 @@ export function compareText(recitedText: string, referenceText: string) {
 function normalizeText(text: string): string {
   return text
     .replace(/[\u0964\u0965।॥]/g, '') // Remove danda and double danda
-    .replace(/[^\p{L}\p{N}\s]/gu, '') // Remove punctuation but keep unicode letters/numbers
+    .replace(/[^a-zA-Z0-9\u0900-\u097F\s]/g, '') // Remove punctuation but keep letters, numbers and Gurmukhi characters
     .replace(/\s+/g, ' ')            // Standardize whitespace
     .trim();
 }
@@ -121,10 +121,37 @@ function isWordMatch(word1: string, word2: string): boolean {
   // Exact match
   if (word1 === word2) return true;
   
-  // Levenshtein distance check for small typos/variations
-  if (levenshteinDistance(word1, word2) <= 1) return true;
+  // Handle common Gurmukhi pronunciation variations
+  if (normalizeGurmukhiPronunciation(word1) === normalizeGurmukhiPronunciation(word2)) return true;
+  
+  // For short words (3 characters or less), use exact matching only
+  if (word1.length <= 3 || word2.length <= 3) {
+    return word1 === word2;
+  }
+  
+  // For longer words, allow more variations
+  const threshold = Math.max(1, Math.floor(Math.max(word1.length, word2.length) / 4));
+  if (levenshteinDistance(word1, word2) <= threshold) return true;
   
   return false;
+}
+
+// Helper function to normalize common Gurmukhi pronunciation variations
+function normalizeGurmukhiPronunciation(word: string): string {
+  return word
+    // Handle similar-sounding characters
+    .replace(/ੳ|ਉ|ਊ/g, 'ਓ')
+    .replace(/ਅ|ਆ/g, 'ਆ')
+    .replace(/ਇ|ਈ/g, 'ਈ')
+    .replace(/ੲ|ਏ/g, 'ਏ')
+    // Normalize ਂ (bindi) variations
+    .replace(/ਂ/g, '')
+    // Normalize ੰ (tippi) variations
+    .replace(/ੰ/g, '')
+    // Normalize ੱ (adhak) variations
+    .replace(/ੱ/g, '')
+    // Remove vowel modifiers for lenient matching
+    .replace(/[ਾ|ਿ|ੀ|ੁ|ੂ|ੇ|ੈ|ੋ|ੌ]/g, '');
 }
 
 // Levenshtein distance implementation for fuzzy matching
