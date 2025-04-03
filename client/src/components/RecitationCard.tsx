@@ -124,48 +124,41 @@ export default function RecitationCard() {
     // Set the feedback
     setFeedback(testFeedback);
     
-    // Step 1: Process the first few words immediately to establish a starting point
-    const initialText = testWords.slice(0, 3).join(" ");
-    console.log("🧪 Initial test with:", initialText);
+    // We'll now process ALL words sequentially through the recitation state
     
-    // Create comparison data for the updateRecitationState function
-    const initialComparison = testWords.slice(0, 3).map(word => ({
-      text: word,
-      isCorrect: true
-    }));
-    
-    // Call the hook function directly to update state
-    updateRecitationState(initialComparison);
-    setProgressPercentage(20);
-    
-    // Step 2: Process the remaining words one by one with a delay
-    let currentIndex = 3;
-    
-    const processNextWord = () => {
-      if (currentIndex < testWords.length) {
-        // Build the progress data
-        const currentComparisonData = testWords.slice(0, currentIndex + 1).map((word, idx) => ({
-          text: word,
-          isCorrect: idx < currentIndex // Only mark the most recent word as incorrect
-        }));
-        
-        console.log(`🧪 Testing with ${currentIndex+1} words`);
-        
-        // Update the state
-        updateRecitationState(currentComparisonData);
-        
-        // Update progress percentage
-        const progress = Math.floor(((currentIndex + 1) / testWords.length) * 100);
-        setProgressPercentage(progress);
-        
-        // Move to next word
-        currentIndex++;
-        setTimeout(processNextWord, 1000); // Slow it down for better visibility
+    // We'll use a recursive function to process each word with a delay
+    const processWordsSequentially = (index: number) => {
+      if (index >= testWords.length) {
+        console.log("🧪 Test progress completed!");
+        return;
       }
+      
+      // Create comparison data up to the current index
+      const comparisonData = testWords.slice(0, index + 1).map((word, idx) => ({
+        text: word,
+        isCorrect: idx < index
+      }));
+      
+      // Every third word will be marked as an error for demonstration
+      if (index % 3 === 2) {
+        comparisonData[index].isCorrect = false;
+      }
+      
+      console.log(`🧪 Processing word ${index + 1}/${testWords.length}: ${testWords[index]}`);
+      
+      // Update the recitation state
+      updateRecitationState(comparisonData);
+      
+      // Calculate progress percentage
+      const progress = Math.floor(((index + 1) / testWords.length) * 100);
+      setProgressPercentage(progress);
+      
+      // Schedule the next word processing
+      setTimeout(() => processWordsSequentially(index + 1), 800);
     };
     
-    // Start the sequential processing after a short delay
-    setTimeout(processNextWord, 1000);
+    // Wait a moment to make sure the UI is ready, then start processing
+    setTimeout(() => processWordsSequentially(0), 500);
   };
 
   return (
@@ -197,7 +190,7 @@ export default function RecitationCard() {
               setIsTestingProgress(true);
               testProgress();
               // Reset testing state after animation completes
-              setTimeout(() => setIsTestingProgress(false), 11000);
+              setTimeout(() => setIsTestingProgress(false), 14000);
             }}
             className="text-xs flex items-center gap-1"
             disabled={isTestingProgress}
