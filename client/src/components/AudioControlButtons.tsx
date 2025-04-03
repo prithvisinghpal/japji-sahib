@@ -50,17 +50,35 @@ export default function AudioControlButtons() {
       console.log("🎯 Transcript change detected, forwarding to recitation processor");
       if (newTranscript && newTranscript.trim() !== '') {
         // Process the transcript for visualization
-        processRecognizedText(newTranscript);
-      
-        // Save the transcript in the audio recording context for replay
-        setRecordedText(newTranscript);
+        console.log("🎯 FULL TRANSCRIPT:", newTranscript);
         
-        // Log detailed info for debugging
-        console.log("🎯 Text processing pipeline triggered:", {
-          transcriptLength: newTranscript.length,
-          transcriptSample: newTranscript.substring(0, 50) + '...',
-          processingTime: new Date().toISOString()
-        });
+        // Strip any non-Gurmukhi characters that might have been incorrectly recognized
+        // This helps with better matching against the reference text
+        const cleanedTranscript = newTranscript
+          .replace(/[a-zA-Z0-9]/g, '') // Remove Latin characters and numbers
+          .replace(/[^\u0A00-\u0A7F\s]/g, '') // Keep only Gurmukhi characters and spaces
+          .replace(/\s+/g, ' ') // Normalize spaces
+          .trim();
+          
+        console.log("🎯 CLEANED TRANSCRIPT:", cleanedTranscript);
+        
+        // Only process if we have meaningful Gurmukhi text
+        if (cleanedTranscript && cleanedTranscript.length > 1) {
+          processRecognizedText(cleanedTranscript);
+        
+          // Save the transcript in the audio recording context for replay
+          setRecordedText(cleanedTranscript);
+          
+          // Log detailed info for debugging
+          console.log("🎯 Text processing pipeline triggered:", {
+            originalLength: newTranscript.length,
+            cleanedLength: cleanedTranscript.length,
+            sample: cleanedTranscript.substring(0, 50) + '...',
+            processingTime: new Date().toISOString()
+          });
+        } else {
+          console.log("🎯 Not enough Gurmukhi text detected in transcript, skipping processing");
+        }
       }
     }, [processRecognizedText, setRecordedText])
   });

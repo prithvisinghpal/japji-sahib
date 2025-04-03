@@ -122,22 +122,32 @@ export function useRecitation() {
     const referenceTextToUse = flattenRecitationText();
     console.log('🔴 Reference text for comparison:', referenceTextToUse);
     
+    // Prepare a shortened version of reference text (first 200 chars) for simpler testing
+    // This focuses the comparison on the beginning of the text to improve matching
+    const shortReferenceText = referenceTextToUse.substring(0, 200);
+    console.log('🔴 Using shortened reference text for initial comparison:', shortReferenceText);
+    
     // Send recognized text to server for comparison
     try {
-      console.log('🔴 Attempting to call API endpoint');
+      console.log('🔴 Attempting comparison with client-side logic');
       
-      // We will use client-side comparison as the primary method since
-      // we've been having issues with the API endpoints
+      // We'll use client-side comparison as the primary method
       console.log('🔴 Using client-side text comparison');
-      const comparisonResult = compareText(
-        recognizedText, 
-        referenceTextToUse
-      );
       
-      console.log('🔴 Client-side comparison result:', comparisonResult);
+      // First try with full text
+      let comparisonResult = compareText(recognizedText, referenceTextToUse);
+      console.log('🔴 Full text comparison result:', comparisonResult);
       
-      if (comparisonResult && comparisonResult.words) {
+      // If no matches or very few matches, try with shortened reference (beginning of text)
+      if (!comparisonResult.words.length || comparisonResult.words.filter(w => w.isCorrect).length < 3) {
+        console.log('🔴 Few matches found, trying with shortened reference text');
+        comparisonResult = compareText(recognizedText, shortReferenceText);
+        console.log('🔴 Shortened text comparison result:', comparisonResult);
+      }
+      
+      if (comparisonResult && comparisonResult.words && comparisonResult.words.length > 0) {
         console.log('🔴 Words detected in comparison result, updating state');
+        console.log('🔴 First 5 words comparison:', comparisonResult.words.slice(0, 5));
         updateRecitationState(comparisonResult.words);
       } else {
         console.log('🔴 No words in comparison result:', comparisonResult);
@@ -160,7 +170,7 @@ export function useRecitation() {
           },
           body: JSON.stringify({ 
             recognizedText: recognizedText,
-            referenceText: referenceTextToUse
+            referenceText: shortReferenceText // Use the shortened reference text for API call too
           })
         });
         
@@ -174,7 +184,7 @@ export function useRecitation() {
             },
             body: JSON.stringify({ 
               recitedText: recognizedText,
-              referenceText: referenceTextToUse
+              referenceText: shortReferenceText // Use the shortened reference text
             })
           });
         }
@@ -184,8 +194,9 @@ export function useRecitation() {
           console.log('🔴 API comparison result:', result);
           
           // Update state based on API results if we have any
-          if (result && result.words) {
+          if (result && result.words && result.words.length > 0) {
             console.log('🔴 API returned words data, updating state again');
+            console.log('🔴 API first 5 words comparison:', result.words.slice(0, 5));
             updateRecitationState(result.words);
           }
           

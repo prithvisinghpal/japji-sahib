@@ -8,9 +8,11 @@ import { useRecitation, FeedbackItem } from "../hooks/useRecitation";
 import { useSettings } from "../context/SettingsContext";
 import { useAudioRecording } from "../context/AudioRecordingContext";
 import { useEffect, useState } from "react";
+import { toast } from "../hooks/use-toast";
 
 export default function RecitationCard() {
   const [isTestingProgress, setIsTestingProgress] = useState(false);
+  // Using imported toast directly to simplify
   
   const { 
     recitationState, 
@@ -29,6 +31,7 @@ export default function RecitationCard() {
   const {
     recordedText,
     isRecording,
+    isPaused,
     isPlaying,
     setRecordedText
   } = useAudioRecording();
@@ -93,6 +96,21 @@ export default function RecitationCard() {
     
     return () => clearTimeout(timeout);
   }, [recitationState.paras.length]);
+  
+  // Add message for users to encourage speech recognition
+  useEffect(() => {
+    if (isRecording && !isPaused) {
+      const showHelpfulTip = setTimeout(() => {
+        toast({
+          title: "Speech Recognition Active",
+          description: "Speak clearly into your microphone in Punjabi. The system will detect Gurmukhi text as you recite.",
+          duration: 7000,
+        });
+      }, 3000);
+      
+      return () => clearTimeout(showHelpfulTip);
+    }
+  }, [isRecording, isPaused]);
   
   // For demonstration and test purposes
   const testProgress = () => {

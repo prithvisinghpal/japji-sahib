@@ -55,7 +55,7 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
       recognition.current.continuous = true;
       recognition.current.interimResults = settings.realtimeFeedback;
       recognition.current.lang = 'pa-IN'; // Punjabi language
-      recognition.current.maxAlternatives = 1;
+      recognition.current.maxAlternatives = 5; // Increased to get more alternative matches
       
       console.log('Speech recognition initialized with settings:', {
         continuous: recognition.current.continuous,
@@ -63,8 +63,15 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
         lang: recognition.current.lang
       });
       
-      // Event handlers
-      recognition.current.onresult = (event: any) => {
+      // Helper function to count Gurmukhi characters in a string
+      const countGurmukhi = (text: string): number => {
+        // Count characters in the Gurmukhi Unicode range
+        const gurmukhiChars = text.match(/[\u0A00-\u0A7F]/g);
+        return gurmukhiChars ? gurmukhiChars.length : 0;
+      };
+      
+      // Helper function to process speech recognition results
+      const processSpeechResults = (event: any) => {
         try {
           console.log('👂 Speech recognition result event received:', event);
           
@@ -81,12 +88,27 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
           for (let i = 0; i < event.results.length; i++) {
             // Check if this result is final
             if (event.results[i].isFinal) {
-              const result = event.results[i][0].transcript;
-              console.log(`👂 Final result [${i}]:`, result);
-              newTranscript += ' ' + result;
+              // Try to find the best alternative with most Gurmukhi characters
+              let bestAlternative = event.results[i][0].transcript;
+              let bestGurmukhi = countGurmukhi(bestAlternative);
+              
+              // Loop through alternatives to find the one with most Gurmukhi
+              for (let j = 1; j < event.results[i].length; j++) {
+                const altText = event.results[i][j].transcript;
+                const altGurmukhi = countGurmukhi(altText);
+                
+                if (altGurmukhi > bestGurmukhi) {
+                  bestAlternative = altText;
+                  bestGurmukhi = altGurmukhi;
+                }
+              }
+              
+              console.log(`👂 Final result [${i}] (best of ${event.results[i].length} alternatives):`, bestAlternative);
+              newTranscript += ' ' + bestAlternative;
               finalTranscriptDetected = true;
             } else if (settings.realtimeFeedback) {
               // Include interim results only if realtime feedback is enabled
+              // Use the most confident result for interim results
               const result = event.results[i][0].transcript;
               console.log(`👂 Interim result [${i}]:`, result);
               newTranscript += ' ' + result;
@@ -120,6 +142,9 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
           console.error('👂 Error processing speech recognition result:', err);
         }
       };
+      
+      // Set up event handlers
+      recognition.current.onresult = processSpeechResults;
       
       recognition.current.onerror = (event: any) => {
         console.error('Speech recognition error:', event.error);

@@ -151,7 +151,8 @@ function normalizeGurmukhiPronunciation(word: string): string {
     // Normalize ੱ (adhak) variations
     .replace(/ੱ/g, '')
     // Remove vowel modifiers for lenient matching
-    .replace(/[ਾ|ਿ|ੀ|ੁ|ੂ|ੇ|ੈ|ੋ|ੌ]/g, '');
+    // Fixed the character class - previously used | inside [...] which is incorrect
+    .replace(/[ਾਿੀੁੂੇੈੋੌ]/g, '');
 }
 
 // Levenshtein distance implementation for fuzzy matching

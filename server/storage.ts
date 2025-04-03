@@ -185,7 +185,8 @@ export class MemStorage implements IStorage {
       // Normalize ੱ (adhak) variations
       .replace(/ੱ/g, '')
       // Remove vowel modifiers for lenient matching
-      .replace(/[ਾ|ਿ|ੀ|ੁ|ੂ|ੇ|ੈ|ੋ|ੌ]/g, '');
+      // Fixed the character class - previously had incorrect syntax with pipes inside []
+      .replace(/[ਾਿੀੁੂੇੈੋੌ]/g, '');
   }
 
   // Levenshtein distance implementation for fuzzy matching
