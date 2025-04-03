@@ -95,7 +95,23 @@ export default function RecitationCard() {
   const testProgress = () => {
     console.log("🧪 Testing progress update and highlighting");
     
-    // Reset the recitation state before processing the test text
+    // Reset recitation first
+    restartRecitation();
+    
+    // Sample text for testing
+    const sampleTexts = [
+      "ੴ ਸਤਿ ਨਾਮੁ",
+      "ਕਰਤਾ ਪੁਰਖੁ ਨਿਰਭਉ",
+      "ਨਿਰਵੈਰੁ ਅਕਾਲ ਮੂਰਤਿ",
+      "ਅਜੂਨੀ ਸੈਭੰ ਗੁਰ ਪ੍ਰਸਾਦਿ"
+    ];
+    
+    // Process each sample text with delay
+    sampleTexts.forEach((text, index) => {
+      setTimeout(() => {
+        processRecognizedText(text);
+      }, index * 2500);
+    });he test text
     restartRecitation();
     
     // Process each word with a delay to simulate real-time highlighting

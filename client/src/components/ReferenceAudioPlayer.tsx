@@ -42,6 +42,17 @@ export default function ReferenceAudioPlayer() {
     // Make sure the audio element is set up properly
     if (audioRef.current) {
       audioRef.current.volume = volume;
+      audioRef.current.preload = "metadata";
+      
+      // Force load the audio
+      audioRef.current.load();
+      
+      // Add loading state handler
+      const handleCanPlay = () => {
+        setIsLoading(false);
+      };
+      
+      audioRef.current.addEventListener('canplay', handleCanPlay);
       
       // Add error handling
       const handleError = (e: any) => {
