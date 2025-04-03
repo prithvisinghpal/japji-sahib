@@ -5,6 +5,7 @@ import { Toaster } from "./components/ui/toaster";
 import { SettingsProvider } from "./context/SettingsContext";
 import { AudioRecordingProvider } from "./context/AudioRecordingContext";
 import DebugPanel from "./components/DebugPanel";
+import PermissionManager from "./components/PermissionManager";
 
 import NotFound from "./pages/not-found";
 import Home from "./pages/Home";
@@ -25,6 +26,7 @@ function App() {
         <AudioRecordingProvider>
           <Router />
           <DebugPanel />
+          <PermissionManager />
           <Toaster />
         </AudioRecordingProvider>
       </SettingsProvider>

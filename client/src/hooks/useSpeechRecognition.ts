@@ -53,9 +53,9 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
       
       // Configure
       recognition.current.continuous = true;
-      recognition.current.interimResults = settings.realtimeFeedback;
+      recognition.current.interimResults = true; // Always get interim results for better responsiveness
       recognition.current.lang = 'pa-IN'; // Punjabi language
-      recognition.current.maxAlternatives = 5; // Increased to get more alternative matches
+      recognition.current.maxAlternatives = 10; // Increased to get more alternative matches
       
       console.log('Speech recognition initialized with settings:', {
         continuous: recognition.current.continuous,
@@ -106,12 +106,25 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
               console.log(`👂 Final result [${i}] (best of ${event.results[i].length} alternatives):`, bestAlternative);
               newTranscript += ' ' + bestAlternative;
               finalTranscriptDetected = true;
-            } else if (settings.realtimeFeedback) {
-              // Include interim results only if realtime feedback is enabled
-              // Use the most confident result for interim results
-              const result = event.results[i][0].transcript;
-              console.log(`👂 Interim result [${i}]:`, result);
-              newTranscript += ' ' + result;
+            } else {
+              // Always include interim results for better responsiveness
+              // For interim results, also try to find the best alternative with most Gurmukhi
+              let bestInterim = event.results[i][0].transcript;
+              let bestInterimGurmukhi = countGurmukhi(bestInterim);
+              
+              // Check if we have alternatives for interim results
+              for (let j = 1; j < event.results[i].length; j++) {
+                const altText = event.results[i][j].transcript;
+                const altGurmukhi = countGurmukhi(altText);
+                
+                if (altGurmukhi > bestInterimGurmukhi) {
+                  bestInterim = altText;
+                  bestInterimGurmukhi = altGurmukhi;
+                }
+              }
+              
+              console.log(`👂 Interim result [${i}] (best of ${event.results[i].length}):`, bestInterim);
+              newTranscript += ' ' + bestInterim;
             }
           }
           
@@ -130,7 +143,7 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
               onTranscriptChange(fullTranscript);
               
               // If we have a final transcript, also process it separately to ensure it's captured
-              if (finalTranscriptDetected && settings.realtimeFeedback) {
+              if (finalTranscriptDetected) {
                 console.log('👂 Final transcript detected, processing separately');
                 setTimeout(() => {
                   onTranscriptChange(fullTranscript);
@@ -187,8 +200,8 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
         } else {
           setIsListening(false);
           
-          // Process the final transcript
-          if (!settings.realtimeFeedback && transcript && onTranscriptChange) {
+          // Process the final transcript regardless of realtimeFeedback setting
+          if (transcript && onTranscriptChange) {
             onTranscriptChange(transcript);
           }
         }
@@ -239,8 +252,8 @@ export function useSpeechRecognition(options: SpeechRecognitionOptions = {}) {
       recognition.current.stop();
       setIsListening(false);
       
-      // Process the final transcript if not done in real-time
-      if (!settings.realtimeFeedback && transcript && onTranscriptChange) {
+      // Always process the final transcript on stop
+      if (transcript && onTranscriptChange) {
         onTranscriptChange(transcript);
       }
     }
