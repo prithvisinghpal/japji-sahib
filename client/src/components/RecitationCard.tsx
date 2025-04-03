@@ -111,7 +111,9 @@ export default function RecitationCard() {
       setTimeout(() => {
         processRecognizedText(text);
       }, index * 2500);
-    });he test text
+    });
+    
+    // Reset after test
     restartRecitation();
     
     // Process each word with a delay to simulate real-time highlighting
