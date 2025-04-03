@@ -389,6 +389,9 @@ export function useRecitation() {
     progressPercentage,
     feedback,
     processRecognizedText,
-    restartRecitation
+    restartRecitation,
+    updateRecitationState,
+    setProgressPercentage,
+    setFeedback
   };
 }

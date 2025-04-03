@@ -4,7 +4,7 @@ import { HelpCircle, RefreshCcw, Play, Sparkles } from "lucide-react";
 import GurmukthiText from "./GurmukthiText";
 import AudioControlButtons from "./AudioControlButtons";
 import AudioWaveform from "./AudioWaveform";
-import { useRecitation } from "../hooks/useRecitation";
+import { useRecitation, FeedbackItem } from "../hooks/useRecitation";
 import { useSettings } from "../context/SettingsContext";
 import { useAudioRecording } from "../context/AudioRecordingContext";
 import { useEffect, useState } from "react";
@@ -16,7 +16,10 @@ export default function RecitationCard() {
     recitationState, 
     progressPercentage,
     restartRecitation,
-    processRecognizedText
+    processRecognizedText,
+    updateRecitationState,
+    setProgressPercentage,
+    setFeedback
   } = useRecitation();
   
   const { 
@@ -98,50 +101,71 @@ export default function RecitationCard() {
     // Reset recitation first
     restartRecitation();
     
-    // Sample text for testing
-    const sampleTexts = [
-      "ੴ ਸਤਿ ਨਾਮੁ",
-      "ਕਰਤਾ ਪੁਰਖੁ ਨਿਰਭਉ",
-      "ਨਿਰਵੈਰੁ ਅਕਾਲ ਮੂਰਤਿ",
-      "ਅਜੂਨੀ ਸੈਭੰ ਗੁਰ ਪ੍ਰਸਾਦਿ"
-    ];
-    
-    // Process each sample text with delay
-    sampleTexts.forEach((text, index) => {
-      setTimeout(() => {
-        processRecognizedText(text);
-      }, index * 2500);
-    });
-    
-    // Reset after test
-    restartRecitation();
-    
-    // Process each word with a delay to simulate real-time highlighting
+    // Define the words to highlight one by one
     const testWords = [
       "ੴ", "ਸਤਿ", "ਨਾਮੁ", "ਕਰਤਾ", "ਪੁਰਖੁ", "ਨਿਰਭਉ", 
       "ਨਿਰਵੈਰੁ", "ਅਕਾਲ", "ਮੂਰਤਿ", "ਅਜੂਨੀ", "ਸੈਭੰ", "ਗੁਰ", "ਪ੍ਰਸਾਦਿ"
     ];
     
-    // First process a couple words together to initialize
-    const initialText = testWords.slice(0, 3).join(" ");
-    processRecognizedText(initialText);
-    setRecordedText(initialText);
+    // Create demo feedback
+    const testFeedback = [
+      {
+        type: 'warning' as const,
+        title: 'Pacing could be improved',
+        description: 'Try to maintain a steady pace throughout your recitation.'
+      },
+      {
+        type: 'error' as const,
+        title: 'Pronunciation needs attention',
+        description: 'Focus on correct pronunciation of "ਪੁਰਖੁ" and "ਨਿਰਭਉ"'
+      }
+    ];
     
-    // Then process more words with a delay between them
+    // Set the feedback
+    setFeedback(testFeedback);
+    
+    // Step 1: Process the first few words immediately to establish a starting point
+    const initialText = testWords.slice(0, 3).join(" ");
+    console.log("🧪 Initial test with:", initialText);
+    
+    // Create comparison data for the updateRecitationState function
+    const initialComparison = testWords.slice(0, 3).map(word => ({
+      text: word,
+      isCorrect: true
+    }));
+    
+    // Call the hook function directly to update state
+    updateRecitationState(initialComparison);
+    setProgressPercentage(20);
+    
+    // Step 2: Process the remaining words one by one with a delay
     let currentIndex = 3;
+    
     const processNextWord = () => {
       if (currentIndex < testWords.length) {
-        const currentText = testWords.slice(0, currentIndex + 1).join(" ");
-        processRecognizedText(currentText);
-        setRecordedText(currentText);
+        // Build the progress data
+        const currentComparisonData = testWords.slice(0, currentIndex + 1).map((word, idx) => ({
+          text: word,
+          isCorrect: idx < currentIndex // Only mark the most recent word as incorrect
+        }));
         
+        console.log(`🧪 Testing with ${currentIndex+1} words`);
+        
+        // Update the state
+        updateRecitationState(currentComparisonData);
+        
+        // Update progress percentage
+        const progress = Math.floor(((currentIndex + 1) / testWords.length) * 100);
+        setProgressPercentage(progress);
+        
+        // Move to next word
         currentIndex++;
-        setTimeout(processNextWord, 800); // Speed of highlighting
+        setTimeout(processNextWord, 1000); // Slow it down for better visibility
       }
     };
     
-    // Start the sequential processing
-    setTimeout(processNextWord, 500);
+    // Start the sequential processing after a short delay
+    setTimeout(processNextWord, 1000);
   };
 
   return (

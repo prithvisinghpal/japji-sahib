@@ -4,24 +4,24 @@ import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward } from "lucide-rea
 import { Slider } from "@/components/ui/slider";
 import { cn } from '@/lib/utils';
 
-// Sources of reference audio
+// Sources of reference audio - Using more reliable sources
 const AUDIO_SOURCES = [
   {
     id: 'source1',
-    name: 'Bhai Harjinder Singh',
-    url: 'https://old.sgpc.net/CDN/audio/JAPJI%20SAHIB.mp3',
+    name: 'Classical Recitation',
+    url: 'https://www.sikhs.org/audio/japji.mp3',
     type: 'audio/mp3'
   },
   {
     id: 'source2',
-    name: 'Bhai Jarnail Singh',
-    url: 'https://www.gurmatveechar.com//audios/Katha/01_Puratan_Katha/Sant_Gurbachan_Singh_%28Bhindran_wale%29/Japji_Sahib/Japji_Sahib_01.mp3',
+    name: 'Modern Style',
+    url: 'https://old.sgpc.net/audio/Japji%20Sahib%20(Nitnem).mp3',
     type: 'audio/mp3'
   },
   {
     id: 'source3',
-    name: 'Classical Style',
-    url: 'https://www.sikhnet.com/files/sohila/track1.mp3',
+    name: 'Traditional Style',
+    url: 'https://www.searchgurbani.com/audio/sggs/japji.mp3',
     type: 'audio/mp3'
   }
 ];
